@@ -32,6 +32,18 @@ export default class Post extends Component {
            </Text>
   }
 
+  exibeLegenda(fotos) {
+    if(fotos.comentario === '')
+    return
+
+    return (
+      <View style={styles.comentario}>
+        <Text style={styles.tituloComentario}>{fotos.loginUsuario}</Text>
+        <Text>{fotos.comentario}</Text>
+      </View>
+    )
+  }
+
   like = () => {
 
     let novaLista = [];
@@ -81,6 +93,8 @@ export default class Post extends Component {
             </TouchableOpacity>
             
             { this.exibeLikes(fotos.likers) }
+            { this.exibeLegenda(fotos) }            
+
           </View>
         </View>
 
@@ -112,6 +126,13 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40
   },
+  comentario: {
+    flexDirection: 'row'
+  },
+  tituloComentario: {
+    fontWeight: 'bold',
+    marginRight: 5
+  }
 });
 
 
