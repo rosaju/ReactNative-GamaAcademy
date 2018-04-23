@@ -6,7 +6,8 @@ import {
   View,
   Image,
   Dimensions,
-  TouchableOpacity
+  TouchableOpacity,
+  TextInput
 } from 'react-native';
 
 export default class Post extends Component {
@@ -14,7 +15,8 @@ export default class Post extends Component {
   constructor(props) {
     super(props);
       this.state = {
-        fotos: this.props.fotos
+        fotos: this.props.fotos,
+        valorComentario: ''
       }
   }
 
@@ -67,6 +69,26 @@ export default class Post extends Component {
     this.setState({ fotos:fotoAtualizada });
   }
 
+  adicionaComentario = () => {
+
+    if(this.state.valorComentario === '')
+    return;
+
+    const novaLista = [...this.state.fotos.comentarios, {
+      id: Math.random(),
+      login: 'meuUsuario',
+      texto: this.state.valorComentario,
+    }];
+
+    const fotoAtualizada = {
+      ...this.state.fotos,
+      comentarios: novaLista,
+    }
+
+    this.setState({fotos: fotoAtualizada, valorComentario: ''});
+    this.inputComentario.clear();
+  }
+
   render() {
 
     const { fotos } = this.state; 
@@ -96,12 +118,23 @@ export default class Post extends Component {
             { this.exibeLegenda(fotos) } 
 
             {fotos.comentarios.map( comentario =>
-              <Text>
+              <Text key={comentario.id}>
                 <Text style={styles.tituloComentario}>{comentario.login}</Text>
-                <Text>{comentario.texto}</Text>
+                <Text> {comentario.texto}</Text>
               </Text>
-            )}           
+            )}    
+            <View style={styles.novoComentario}>      
+              <TextInput style={styles.input} 
+                placeholder="Adicione um comentário..."
+                underlineColorAndroid="transparent"
+                ref={input => this.inputComentario = input}
+                onChangeText={texto => this.setState({valorComentario: texto})}/>
 
+              <TouchableOpacity onPress={this.adicionaComentario}>
+                <Image style={ styles.botaoComentario}
+                  source={require('../../resources/img/send.png')}/>
+              </TouchableOpacity>
+            </View> 
           </View>
         </View>
 
@@ -139,6 +172,20 @@ const styles = StyleSheet.create({
   tituloComentario: {
     fontWeight: 'bold',
     marginRight: 5
+  },
+  input:{
+    flex: 1,
+    height: 40
+  },
+  botaoComentario: {
+    width: 30,
+    height: 30
+  },
+  novoComentario: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd'
   }
 });
 
