@@ -14,98 +14,48 @@ import Likes from './Likes'
 
 export default class Post extends Component {
 
-  constructor(props) {
-    super(props);
-      this.state = {
-        fotos: this.props.fotos,
-        valorComentario: ''
-      }
-  }
-
-  exibeLegenda(fotos) {
-    if(fotos.comentario === '')
+  exibeLegenda(foto) {
+    if(foto.comentario === '')
     return
 
     return (
       <View style={styles.comentario}>
-        <Text style={styles.tituloComentario}>{fotos.loginUsuario}</Text>
-        <Text>{fotos.comentario}</Text>
+        <Text style={styles.tituloComentario}>{foto.loginUsuario}</Text>
+        <Text>{foto.comentario}</Text>
       </View>
     )
   }
 
-  like = () => {
-
-    let novaLista = [];
-
-      if(!this.state.fotos.likeada) {
-        novaLista = [
-          ...this.state.fotos.likers,
-          {login: 'meuUsuario'}
-        ]
-      } else {
-        novaLista = this.state.fotos.likers
-          .filter(liker => liker.login != 'meuUsuario')
-      }
-
-    const fotoAtualizada = {
-      ...this.state.fotos,
-      likeada: !this.state.fotos.likeada,
-      likers: novaLista
-    }
-
-    this.setState({ fotos:fotoAtualizada });
-  }
-
-  adicionaComentario = (valorComentario) => {
-
-    if(valorComentario === '')
-    return;
-
-    const novaLista = [...this.state.fotos.comentarios, {
-      id: Math.random(),
-      login: 'meuUsuario',
-      texto: valorComentario
-    }];
-
-    const fotoAtualizada = {
-      ...this.state.fotos,
-      comentarios: novaLista
-    }
-
-    this.setState({fotos: fotoAtualizada});
-  }
-
   render() {
 
-    const { fotos } = this.state; 
+    const { foto, likeCallback, comentarioCallback } = this.props; 
 
     return (
 
         <View>
           <View style={styles.header}> 
               <Image 
-                source={{ uri: fotos.urlPerfil }} 
+                source={{ uri: foto.urlPerfil }} 
                 style={styles.fotoDePerfil}/>
               <Text>
-                {fotos.loginUsuario}
+                {foto.loginUsuario}
               </Text>
           </View>
           <Image 
-            source={{ uri: fotos.urlFoto }} 
+            source={{ uri: foto.urlFoto }} 
             style={styles.fotoFeed}/>
           <View style={styles.rodape}>
-            <Likes fotos={fotos} likeCallback={this.like}/>
+            <Likes foto={foto} likeCallback={likeCallback}/>
             
-            { this.exibeLegenda(fotos) } 
+            { this.exibeLegenda(foto) } 
 
-            {fotos.comentarios.map( comentario =>
+            {foto.comentarios.map( comentario =>
               <Text key={comentario.id}>
                 <Text style={styles.tituloComentario}>{comentario.login}</Text>
                 <Text> {comentario.texto}</Text>
               </Text>
             )}    
-            <InputComentario comentarioCallback={this.adicionaComentario}/>
+            <InputComentario idFoto={foto.id} comentarioCallback={comentarioCallback}/>
           </View>
         </View>
 
