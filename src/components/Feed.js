@@ -18,6 +18,13 @@ export default class Feed extends Component {
     }
   }
 
+  atualizaFotos(fotoAtualizada) {
+    const fotos = this.state.fotos.map(foto => 
+      foto.id === fotoAtualizada.id ? fotoAtualizada : foto
+    )
+    this.setState({fotos})
+  }
+
   componentDidMount() {
 
     const uri = 'http://instalura-api.herokuapp.com/api/fotos';
@@ -54,16 +61,16 @@ export default class Feed extends Component {
         if(!foto.likeada) {
           novaLista = [
             ...foto.likers,
-            {login: usuario}
+            {login: usuario.nome}
           ]
         } else {
           novaLista = foto.likers
-            .filter(liker => liker.login !== 'meuUsuario')
+            .filter(liker => liker.login !== usuario.nome)
         }
 
         return novaLista
       })
-      
+
       .then(novaLista => {
         const fotoAtualizada = {
           ...foto,
@@ -71,7 +78,7 @@ export default class Feed extends Component {
           likers: novaLista
         }
 
-        this.atulizaFotos(fotoAtualizada);
+        this.atualizaFotos(fotoAtualizada);
       })
 
       const uri = `http://instalura-api.herokuapp.com/api/fotos/${idFoto}/like`;
@@ -131,7 +138,7 @@ export default class Feed extends Component {
           comentarios: novaLista
         }
 
-        this.atulizaFotos(fotoAtualizada);
+        this.atualizaFotos(fotoAtualizada);
         inputComentario.clear();
       })
   }
