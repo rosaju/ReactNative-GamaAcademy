@@ -54,6 +54,15 @@ export default class Login extends Component {
             /* AsyncStorage.getItem('usuario')
                 .then(usuarioStringified => console.warn(usuarioStringified))
                 .then(usuario => console.warn(usuario.nome)) */
+
+            this.props.navigator.resetTo({
+                screen: 'FeedScreen',
+                title: 'Instalura',
+                navigatorStyle: {
+                    navBarHidden: true
+                }
+            })
+
         })
         .catch(error => { 
             this.setState({validacao: error.message})

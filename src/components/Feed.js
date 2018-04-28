@@ -3,7 +3,8 @@ import {
   AppRegistry,
   StyleSheet,
   FlatList,
-  Platform
+  Platform,
+  AsyncStorage
 } from 'react-native';
 
 import Post from './Post';
@@ -18,10 +19,25 @@ export default class Feed extends Component {
   }
 
   componentDidMount() {
-    fetch('http://192.168.0.137:8080/api/public/fotos/rafael')
-    .then(response => response.json())
-    .then(json => this.setState({fotos: json}))
+
+    const uri = 'http://instalura-api.herokuapp.com/api/fotos';
+
+    AsyncStorage.getItem('usuario')
+      .then(usuarioEmTexto => JSON.parse(usuarioEmTexto))
+      .then(usuario => {
+        const request = {
+          headers: new Headers({
+            "X-AUTH-TOKEN": usuario.token
+          })
+        }
+        return request
+      })
+      .then(request => fetch(uri, request))
+      .then(response => response.json())
+      .then(json => this.setState({fotos: json}))
   }
+
+  // http://192.168.0.137:8080/api/fotos
 
   buscaPorId(idFoto) {
     return this.state.fotos.find(foto => foto.id === idFoto)
@@ -30,25 +46,47 @@ export default class Feed extends Component {
   like = (idFoto) => {
     const foto = this.buscaPorId(idFoto);
 
-    let novaLista = [];
+    AsyncStorage.getItem('usuario')
+      .then(usuarioLogado => JSON.parse(usuarioLogado))
+      .then(usuario => {
 
-      if(!foto.likeada) {
-        novaLista = [
-          ...foto.likers,
-          {login: 'meuUsuario'}
-        ]
-      } else {
-        novaLista = foto.likers
-          .filter(liker => liker.login !== 'meuUsuario')
-      }
+        let novaLista = [];
+        if(!foto.likeada) {
+          novaLista = [
+            ...foto.likers,
+            {login: usuario}
+          ]
+        } else {
+          novaLista = foto.likers
+            .filter(liker => liker.login !== 'meuUsuario')
+        }
 
-    const fotoAtualizada = {
-      ...foto,
-      likeada: !foto.likeada,
-      likers: novaLista
-    }
+        return novaLista
+      })
+      
+      .then(novaLista => {
+        const fotoAtualizada = {
+          ...foto,
+          likeada: !foto.likeada,
+          likers: novaLista
+        }
 
-    this.atulizaFotos(fotoAtualizada);
+        this.atulizaFotos(fotoAtualizada);
+      })
+
+      const uri = `http://instalura-api.herokuapp.com/api/fotos/${idFoto}/like`;
+      AsyncStorage.getItem('usuario')
+        .then(usuarioLogado => JSON.parse(usuarioLogado))
+        .then(usuario => {
+          return {
+            method: 'POST',
+            headers: new Headers({
+              "X-AUTH-TOKEN": usuario.token
+            })
+          }
+        })
+        .then(requestInfo => fetch(uri, requestInfo));
+    
   }
 
   adicionaComentario = (idFoto, valorComentario, inputComentario) => {
@@ -58,18 +96,44 @@ export default class Feed extends Component {
 
     const foto = this.buscaPorId(idFoto);
 
-    const novaLista = [...foto.comentarios, {
-      id: Math.random(),
-      login: 'meuUsuario',
-      texto: valorComentario
-    }];
-
-    const fotoAtualizada = {
-      ...foto,
-      comentarios: novaLista
+    const requestInfo = {
+      method: 'POST',
+      body: JSON.stringify({
+        texto: valorComentario
+      }),
+      headers: new Headers({
+        "Content-type": "application/json"
+      })
     }
+
+    const uri = `http://instalura-api.herokuapp.com/api/fotos/${idFoto}/comment`;
     
-    this.atulizaFotos(fotoAtualizada);
+    AsyncStorage.getItem('usuario')
+      .then(usuarioLogado => JSON.parse(usuarioLogado))
+      .then(usuario => {
+        return {
+          method: 'POST',
+          body: JSON.stringify({
+            texto: valorComentario
+          }),
+          headers: new Headers({
+            "Content-type": "application/json",
+            "X-AUTH-TOKEN": usuario.token
+          })
+        }
+      })
+      .then(requestInfo => fetch(uri,requestInfo))
+      .then(resposta => resposta.json())
+      .then(valorComentario => [...foto.comentarios, valorComentario])
+      .then(novaLista => {
+        const fotoAtualizada = {
+          ...foto,
+          comentarios: novaLista
+        }
+
+        this.atulizaFotos(fotoAtualizada);
+        inputComentario.clear();
+      })
   }
 
   render() {    
